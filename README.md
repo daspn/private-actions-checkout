@@ -11,7 +11,7 @@ Create a workflow `.yml` file in your repositories `.github/workflows` directory
 ### Inputs
 
 * `actions_list` - List of private actions to checkout. Must be a JSON array and each entry must mutch the format owner/repo@branch
-* `checkout_base_path` - The command's friendly name
+* `checkout_base_path` - Where to checkout the custom actions
 
 ### Example workflow
 
