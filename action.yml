@@ -7,6 +7,9 @@ inputs:
   checkout_base_path:
     description: Where to checkout the custom actions
     required: true
+  ssh_private_key:
+    description: If provided, configures the ssh-agent with the given private key.
+    required: false
 runs:
   using: "node12"
   main: "dist/index.js"

@@ -2,8 +2,7 @@
 
 # private-actions-checkout
 
-Simplifies using custom private actions (and promotes code reuse) by looping throught a list of repositories and checking them out locally. 
-This action assumes that valid SSH credentials are available to the `git` executable (see example below).
+Simplifies using custom private actions (and promotes code reuse) by looping throught a list of repositories and checking them out locally.
 
 ## Usage
 
@@ -12,8 +11,9 @@ Create a workflow `.yml` file in your repositories `.github/workflows` directory
 
 ### Inputs
 
-* `actions_list` - List of private actions to checkout. Must be a JSON array and each entry must mutch the format owner/repo@branch
-* `checkout_base_path` - Where to checkout the custom actions
+* `actions_list` - [REQUIRED] List of private actions to checkout. Must be a JSON array and each entry must mutch the format owner/repo@branch
+* `checkout_base_path` - [REQUIRED] Where to checkout the custom actions
+* `ssh_private_key` - [OPTIONAL] If provided, configures the ssh-agent with the given private key. If not provided the code assumes that valid SSH credentials are available to the `git` executable.
 
 ### Example workflow
 
@@ -29,16 +29,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # here I'm using a custom action to setup the SSH credentials, but you can choose any other approach
-    - uses: webfactory/ssh-agent@v0.2.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
     - name: Private actions checkout
       uses: daspn/private-actions-checkout@v1
       with:
         actions_list: '["githubuser/my-private-action-1@v1", "githubuser/my-private-action-2@v1"]'
         checkout_base_path: ./.github/actions
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Validation
       run: |
