@@ -11,7 +11,7 @@ Create a workflow `.yml` file in your repositories `.github/workflows` directory
 
 ### Inputs
 
-* `actions_list` - [REQUIRED] List of private actions to checkout. Must be a JSON array and each entry must mutch the format owner/repo@branch
+* `actions_list` - [REQUIRED] List of private actions to checkout. Must be a JSON array and each entry must mutch the format owner/repo@ref
 * `checkout_base_path` - [REQUIRED] Where to checkout the custom actions
 * `ssh_private_key` - [OPTIONAL] If provided, configures the ssh-agent with the given private key. If not provided the code assumes that valid SSH credentials are available to the `git` executable.
 

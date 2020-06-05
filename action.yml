@@ -2,7 +2,7 @@ name: "Private Actions Checkout"
 description: "Enables using private actions on a workflow"
 inputs:
   actions_list:
-    description: List of private actions to checkout. Must be a JSON array and each entry must mutch the format owner/repo@branch
+    description: List of private actions to checkout. Must be a JSON array and each entry must mutch the format owner/repo@ref
     required: true
   checkout_base_path:
     description: Where to checkout the custom actions
