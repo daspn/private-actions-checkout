@@ -8,7 +8,9 @@ env:
 jobs:
   test:
     name: Unit test
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      os: [ubuntu-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v2
@@ -27,7 +29,9 @@ jobs:
 
   test-no-ssh-key:
     name: Unit test (no SSH provided)
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      os: [ubuntu-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v2
