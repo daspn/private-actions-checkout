@@ -10,7 +10,8 @@ jobs:
     name: Unit test
     runs-on: ${{ matrix.os }}
     strategy:
-      os: [ubuntu-latest, macos-latest]
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v2
@@ -31,7 +32,8 @@ jobs:
     name: Unit test (no SSH provided)
     runs-on: ${{ matrix.os }}
     strategy:
-      os: [ubuntu-latest, macos-latest]
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v2
