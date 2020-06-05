@@ -1403,6 +1403,10 @@ const sshAgentStart = () => {
   for (const lineNumber in lines) {
     const matches = /^(SSH_AUTH_SOCK|SSH_AGENT_PID)=(.*); export \1/.exec(lines[lineNumber]);
     if (matches && matches.length > 0) {
+
+      console.log(`matches[1]: ${matches[1]}`)
+      console.log(`matches[2]: ${matches[2]}`)
+
       core.exportVariable(matches[1], matches[2]);
     }
   }
