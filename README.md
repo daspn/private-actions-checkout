@@ -32,7 +32,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Private actions checkout
-      uses: daspn/private-actions-checkout@v1
+      uses: daspn/private-actions-checkout@v2
       with:
         actions_list: '["githubuser/my-private-action-1@v1", "githubuser/my-private-action-2@v1"]'
         checkout_base_path: ./.github/actions
@@ -67,14 +67,14 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Checking out private actions from github_user
-      uses: daspn/private-actions-checkout@v1
+      uses: daspn/private-actions-checkout@v2
       with:
         actions_list: '["github_user/my-private-action-1@v1", "github_user/my-private-action-2@v1"]'
         checkout_base_path: ./.github/actions
         ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY_1 }}
 
     - name: Checking out private actions from another_github_user
-      uses: daspn/private-actions-checkout@v1
+      uses: daspn/private-actions-checkout@v2
       with:
         actions_list: '["another_github_user/my-private-action-3@v1", "another_github_user/my-private-action-4@v1"]'
         checkout_base_path: ./.github/actions
@@ -115,7 +115,7 @@ jobs:
 
     # as no SSH key is provided the action will assume valid SSH credentials are available
     - name: Private actions checkout
-      uses: daspn/private-actions-checkout@v1
+      uses: daspn/private-actions-checkout@v2
       with:
         actions_list: '["githubuser/my-private-action-1@v1", "githubuser/my-private-action-2@v1"]'
         checkout_base_path: ./.github/actions
