@@ -10,6 +10,10 @@ const sshHomeSetup = () => {
 
 const sshAgentStart = () => {
   const sshAgentOutput = child_process.execFileSync("ssh-agent");
+
+  console.log('----------');
+  console.log(sshAgentOutput.toString());
+
   const lines = sshAgentOutput.toString().split("\n");
   for (const lineNumber in lines) {
     const matches = /^(SSH_AUTH_SOCK|SSH_AGENT_PID)=(.*); export \1/.exec(lines[lineNumber]);
