@@ -1,5 +1,4 @@
 const core = require('@actions/core');
-const exec = require('@actions/exec');
 const child_process = require('child_process');
 const fs = require('fs');
 
@@ -39,11 +38,6 @@ const sshSetup = (privateKey) => {
   child_process.execSync("ssh-add -l", { stdio: "inherit" });
 };
 
-const logAndExec = (command) => {
-  console.log(command);
-  exec.exec(command);
-};
-
 const hasValue = (input) => {
   return input.trim().length !== 0;
 };
@@ -72,7 +66,8 @@ actionsList.forEach((action) => {
     const cloneDir = `${basePath}/${repo}`;
     const cloneCommand = `git clone --depth=1 --single-branch --branch ${branch} ${cloneUrl} ${cloneDir}`;
 
-    logAndExec(cloneCommand);
+    console.log(cloneCommand);
+    child_process.execSync(cloneCommand);
   } else {
     console.log(`The value ${action} does not follow the required format: owner/repo@branch`);
   }
