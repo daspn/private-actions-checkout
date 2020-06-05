@@ -1395,8 +1395,8 @@ const logAndExec = async (command) => {
 }
 
 const sshSetup = async (privateKey) => {
-  await logAndExec(`eval "$(ssh-agent -s)"`);
-  await logAndExec(`echo "${privateKey}" > ${privateKeyPath}`);
+  await logAndExec('ssh-agent -s');
+  await logAndExec(`echo '${privateKey}' > ${privateKeyPath}`);
   await logAndExec(`ssh-add -K ${privateKeyPath}`);
   await logAndExec(`ssh-keyscan -H github.com >> ~/.ssh/known_hosts`);
 }
@@ -1408,9 +1408,9 @@ const sshCleanUp = async () => {
 
 async function run() {
   try {
-    const actionsList = JSON.parse(core.getInput("actions_list"));
-    const basePath = core.getInput("checkout_base_path");
-    const sshPrivateKey = core.getInput("ssh_private_key");
+    const actionsList = JSON.parse(core.getInput('actions_list'));
+    const basePath = core.getInput('checkout_base_path');
+    const sshPrivateKey = core.getInput('ssh_private_key');
 
     if(sshPrivateKey.trim().length !== 0) {
       await sshSetup(sshPrivateKey);
