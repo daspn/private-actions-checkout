@@ -2,11 +2,14 @@ name: "Private Actions Checkout"
 description: "Enables using private actions on a workflow"
 inputs:
   actions_list:
-    description: List of private actions to checkout. Must be a JSON array and each entry must mutch the format owner/repo@branch
+    description: List of private actions to checkout. Must be a JSON array and each entry must mutch the format owner/repo@ref
     required: true
   checkout_base_path:
     description: Where to checkout the custom actions
     required: true
+  ssh_private_key:
+    description: If provided, configures the ssh-agent with the given private key.
+    required: false
 runs:
   using: "node12"
   main: "dist/index.js"
