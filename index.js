@@ -79,5 +79,5 @@ run();
 
 if (hasValue(sshPrivateKey)) {
   //clean up
-  execSync("kill ${SSH_AGENT_PID}", { stdio: "inherit" });
+  child_process.execSync("kill ${SSH_AGENT_PID}", { stdio: "inherit" });
 }
