@@ -3,7 +3,7 @@ name: Continuous Integration
 on: push
 
 env:
-  PRIVATE_CUSTOM_ACTIONS: '["daspn/private-custom-action-1@master"]'
+  PRIVATE_CUSTOM_ACTIONS: '["daspn/private-custom-action-2@master"]'
 
 jobs:
   test:
@@ -24,7 +24,7 @@ jobs:
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Say hello
-        uses: ./.github/actions/private-custom-action-1
+        uses: ./.github/actions/private-custom-action-2
         with:
           who_to_greet: World
 
@@ -49,6 +49,6 @@ jobs:
           checkout_base_path: ./.github/actions
 
       - name: Say hello
-        uses: ./.github/actions/private-custom-action-1
+        uses: ./.github/actions/private-custom-action-2
         with:
           who_to_greet: World
