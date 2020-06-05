@@ -1,5 +1,5 @@
 const core = require('@actions/core');
-const child_process = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 const fs = require('fs');
 
 const sshHomePath = `${process.env["HOME"]}/.ssh`;
@@ -11,9 +11,9 @@ const sshHomeSetup = () => {
 };
 
 const sshAgentStart = () => {
-  console.log('Starting the SSH agent');
+  console.log('Starting the SSH agent.');
   
-  const sshAgentOutput = child_process.execFileSync("ssh-agent");
+  const sshAgentOutput = execFileSync("ssh-agent");
   const lines = sshAgentOutput.toString().split("\n");
   for (const lineNumber in lines) {
     const matches = /^(SSH_AUTH_SOCK|SSH_AGENT_PID)=(.*); export \1/.exec(lines[lineNumber]);
@@ -27,15 +27,15 @@ const sshAgentStart = () => {
 const addPrivateKey = (privateKey) => {
   console.log('Adding the private key');
   privateKey.split(/(?=-----BEGIN)/).forEach(function (key) {
-    child_process.execSync("ssh-add -", { input: key.trim() + "\n" });
+    execSync("ssh-add -", { input: key.trim() + "\n" });
   });
+  execSync("ssh-add -l", { stdio: "inherit" });
 };
 
 const sshSetup = (privateKey) => {
   sshHomeSetup();
   sshAgentStart();
   addPrivateKey(privateKey);
-  child_process.execSync("ssh-add -l", { stdio: "inherit" });
 };
 
 const hasValue = (input) => {
@@ -45,10 +45,10 @@ const hasValue = (input) => {
 const sshPrivateKey = core.getInput("ssh_private_key");
 
 if (hasValue(sshPrivateKey)) {
-  console.log("Setting up the SSH agent with the provided private key.");
+  console.log("Setting up the SSH agent with the provided private key");
   sshSetup(sshPrivateKey);
 } else {
-  console.log("No private key provided. Assuming valid SSH credentials are available.");
+  console.log("No private key provided. Assuming valid SSH credentials are available");
 }
 
 const actionsList = JSON.parse(core.getInput('actions_list'));
@@ -67,7 +67,7 @@ actionsList.forEach((action) => {
     const cloneCommand = `git clone --depth=1 --single-branch --branch ${branch} ${cloneUrl} ${cloneDir}`;
 
     console.log(cloneCommand);
-    child_process.execSync(cloneCommand);
+    execSync(cloneCommand);
   } else {
     console.log(`The value ${action} does not follow the required format: owner/repo@branch`);
   }
@@ -75,5 +75,5 @@ actionsList.forEach((action) => {
 
 if (hasValue(sshPrivateKey)) {
   //clean up
-  child_process.execSync("kill ${SSH_AGENT_PID}", { stdio: "inherit" });
+  execSync("kill ${SSH_AGENT_PID}", { stdio: "inherit" });
 }
