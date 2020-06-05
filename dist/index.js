@@ -409,7 +409,7 @@ module.exports = require("fs");
 /***/ (function(__unusedmodule, __unusedexports, __webpack_require__) {
 
 const core = __webpack_require__(207);
-const { execSync } = __webpack_require__(129);
+const { execFileSync, execSync } = __webpack_require__(129);
 const fs = __webpack_require__(747);
 
 const sshHomePath = `${process.env["HOME"]}/.ssh`;
@@ -422,7 +422,15 @@ const sshHomeSetup = () => {
 
 const sshAgentStart = () => {
   console.log('Starting the SSH agent.');
-  execSync("ssh-agent");
+  
+  const sshAgentOutput = execFileSync("ssh-agent");
+  const lines = sshAgentOutput.toString().split("\n");
+  for (const lineNumber in lines) {
+    const matches = /^(SSH_AUTH_SOCK|SSH_AGENT_PID)=(.*); export \1/.exec(lines[lineNumber]);
+    if (matches && matches.length > 0) {
+      process.env[matches[1]] = matches[2];
+    }
+  }
 };
 
 const addPrivateKey = (privateKey) => {
