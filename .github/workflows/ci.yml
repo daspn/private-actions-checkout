@@ -1,0 +1,29 @@
+name: Continuous Integration
+
+on: push
+
+env:
+  PRIVATE_CUSTOM_ACTIONS: '["daspn/private-custom-action-1@master"]'
+
+jobs:
+  test:
+    name: Unit test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: webfactory/ssh-agent@v0.2.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Private actions checkout
+        uses: .
+        with:
+          actions_list: ${{ env.PRIVATE_CUSTOM_ACTIONS }}
+          checkout_base_path: ./.github/actions
+
+      - name: Say hello
+        uses: ./.github/actions/private-custom-action-1
+        with:
+          who_to_greet: World
