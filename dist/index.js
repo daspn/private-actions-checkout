@@ -416,12 +416,12 @@ const sshHomePath = `${process.env['HOME']}/.ssh`;
 const sshHomeSetup = () => {
   console.log('Creating SSH home folder');
   fs.mkdirSync(sshHomePath, { recursive: true });
+  console.log('Configuring known_hosts file');
   execSync(`ssh-keyscan -H github.com >> ${sshHomePath}/known_hosts`);
 };
 
 const sshAgentStart = () => {
   console.log('Starting the SSH agent');
-  
   const sshAgentOutput = execFileSync('ssh-agent');
   const lines = sshAgentOutput.toString().split('\n');
   for (const lineNumber in lines) {
