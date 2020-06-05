@@ -412,7 +412,7 @@ const core = __webpack_require__(207);
 const { execFileSync, execSync } = __webpack_require__(129);
 const fs = __webpack_require__(747);
 
-const sshHomePath = `${process.env["HOME"]}/.ssh`;
+const sshHomePath = `${process.env['HOME']}/.ssh`;
 const sshHomeSetup = () => {
   console.log('Creating SSH home folder');
   fs.mkdirSync(sshHomePath, { recursive: true });
@@ -420,10 +420,10 @@ const sshHomeSetup = () => {
 };
 
 const sshAgentStart = () => {
-  console.log('Starting the SSH agent.');
+  console.log('Starting the SSH agent');
   
-  const sshAgentOutput = execFileSync("ssh-agent");
-  const lines = sshAgentOutput.toString().split("\n");
+  const sshAgentOutput = execFileSync('ssh-agent');
+  const lines = sshAgentOutput.toString().split('\n');
   for (const lineNumber in lines) {
     const matches = /^(SSH_AUTH_SOCK|SSH_AGENT_PID)=(.*); export \1/.exec(lines[lineNumber]);
     if (matches && matches.length > 0) {
@@ -435,9 +435,9 @@ const sshAgentStart = () => {
 const addPrivateKey = (privateKey) => {
   console.log('Adding the private key');
   privateKey.split(/(?=-----BEGIN)/).forEach(function (key) {
-    execSync("ssh-add -", { input: key.trim() + "\n" });
+    execSync('ssh-add -', { input: key.trim() + '\n' });
   });
-  execSync("ssh-add -l", { stdio: "inherit" });
+  execSync('ssh-add -l', { stdio: 'inherit' });
 };
 
 const sshSetup = (privateKey) => {
@@ -450,13 +450,13 @@ const hasValue = (input) => {
   return input.trim().length !== 0;
 };
 
-const sshPrivateKey = core.getInput("ssh_private_key");
+const sshPrivateKey = core.getInput('ssh_private_key');
 
 if (hasValue(sshPrivateKey)) {
-  console.log("Setting up the SSH agent with the provided private key");
+  console.log('Setting up the SSH agent with the provided private key');
   sshSetup(sshPrivateKey);
 } else {
-  console.log("No private key provided. Assuming valid SSH credentials are available");
+  console.log('No private key provided. Assuming valid SSH credentials are available');
 }
 
 const actionsList = JSON.parse(core.getInput('actions_list'));
@@ -482,8 +482,8 @@ actionsList.forEach((action) => {
 });
 
 if (hasValue(sshPrivateKey)) {
-  //clean up
-  execSync("kill ${SSH_AGENT_PID}", { stdio: "inherit" });
+  console.log('Killing the ssh-agent')
+  execSync('kill ${SSH_AGENT_PID}', { stdio: 'inherit' });
 }
 
 
