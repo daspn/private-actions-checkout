@@ -1430,7 +1430,10 @@ const hasValue = (input) => {
 const sshPrivateKey = core.getInput("ssh_private_key");
 
 if (hasValue(sshPrivateKey)) {
+  console.log("Setting up the SSH agent with the provided private key.");
   sshSetup(sshPrivateKey);
+} else {
+  console.log("No private key provided. Assuming valid SSH credentials are available.");
 }
 
 async function run() {
