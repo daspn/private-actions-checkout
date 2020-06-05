@@ -1,34 +1,56 @@
 const core = require('@actions/core');
 const exec = require('@actions/exec');
+const child_process = require('child_process');
+const fs = require('fs');
 
-const privateKeyPath = `./${Math.random().toString(36).substring(7)}`;
+const sshHomePath = `${process.env["HOME"]}/.ssh`;
+const sshHomeSetup = () => {
+  fs.mkdirSync(sshHomePath, { recursive: true });
+};
+
+const sshAgentStart = () => {
+  const sshAgentOutput = child_process.execFileSync("ssh-agent");
+  const lines = sshAgentOutput.toString().split("\n");
+  for (const lineNumber in lines) {
+    const matches = /^(SSH_AUTH_SOCK|SSH_AGENT_PID)=(.*); export \1/.exec(lines[lineNumber]);
+    if (matches && matches.length > 0) {
+      core.exportVariable(matches[1], matches[2]);
+    }
+  }
+};
+
+const addPrivateKey = (privateKey) => {
+  privateKey.split(/(?=-----BEGIN)/).forEach(function (key) {
+    child_process.execSync("ssh-add -", { input: key.trim() + "\n" });
+  });
+};
+
+const sshSetup = (privateKey) => {
+  sshHomeSetup();
+  sshAgentStart();
+  addPrivateKey(privateKey);
+  child_process.execSync("ssh-add -l", { stdio: "inherit" });
+};
 
 const logAndExec = async (command) => {
   console.log(command);
   await exec.exec(command);
-}
+};
 
-const sshSetup = async (privateKey) => {
-  await logAndExec('ssh-agent -s');
-  await logAndExec(`echo '${privateKey}' > ${privateKeyPath}`);
-  await logAndExec(`ssh-add -K ${privateKeyPath}`);
-  await logAndExec(`ssh-keyscan -H github.com >> ~/.ssh/known_hosts`);
-}
+const hasValue = (input) => {
+  return input.trim().length !== 0;
+};
 
-const sshCleanUp = async () => {
-  await logAndExec(`ssh-add -D ${privateKeyPath}`);
-  await logAndExec(`rm -f ${privateKeyPath}`);
+const sshPrivateKey = core.getInput("ssh_private_key");
+
+if (hasValue(sshPrivateKey)) {
+  sshSetup(sshPrivateKey);
 }
 
 async function run() {
   try {
     const actionsList = JSON.parse(core.getInput('actions_list'));
     const basePath = core.getInput('checkout_base_path');
-    const sshPrivateKey = core.getInput('ssh_private_key');
-
-    if(sshPrivateKey.trim().length !== 0) {
-      await sshSetup(sshPrivateKey);
-    }
 
     const regex = /^(.+)\/(.+)@(.+)$/;
     actionsList.forEach(async (action) => {
@@ -48,10 +70,14 @@ async function run() {
       }
     });
 
-    await sshCleanUp();
   } catch (error) {
     core.setFailed(error.message);
   }
 }
 
 run();
+
+if (hasValue(sshPrivateKey)) {
+  //clean up
+  execSync("kill ${SSH_AGENT_PID}", { stdio: "inherit" });
+}
