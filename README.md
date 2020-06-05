@@ -1,3 +1,5 @@
+![Continuous Integration](https://github.com/daspn/private-actions-checkout/workflows/Continuous%20Integration/badge.svg)
+
 # private-actions-checkout
 
 Simplifies using custom private actions (and promotes code reuse) by looping throught a list of repositories and checking them out locally. 
