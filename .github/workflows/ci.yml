@@ -13,12 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: webfactory/ssh-agent@v0.2.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      # - uses: webfactory/ssh-agent@v0.2.0
+      #   with:
+      #     ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Private actions checkout
-        uses: .
+        uses: ./
         with:
           actions_list: ${{ env.PRIVATE_CUSTOM_ACTIONS }}
           checkout_base_path: ./.github/actions
