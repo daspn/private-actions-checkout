@@ -9,6 +9,8 @@ const sshHomeSetup = () => {
 };
 
 const sshAgentStart = () => {
+  console.log('xxxxxxxxxx');
+  
   const sshAgentOutput = child_process.execFileSync("ssh-agent");
 
   console.log('----------');
