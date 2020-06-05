@@ -5,24 +5,21 @@ const fs = require('fs');
 
 const sshHomePath = `${process.env["HOME"]}/.ssh`;
 const sshHomeSetup = () => {
+  console.log('Creating SSH home folder');
   fs.mkdirSync(sshHomePath, { recursive: true });
 };
 
 const sshAgentStart = () => {
-  console.log('xxxxxxxxxx');
+  console.log('Starting the SSH agent');
   
   const sshAgentOutput = child_process.execFileSync("ssh-agent");
-
-  console.log('----------');
-  console.log(sshAgentOutput.toString());
-
   const lines = sshAgentOutput.toString().split("\n");
   for (const lineNumber in lines) {
     const matches = /^(SSH_AUTH_SOCK|SSH_AGENT_PID)=(.*); export \1/.exec(lines[lineNumber]);
     if (matches && matches.length > 0) {
-      
-      console.log(matches[1]);
-      console.log(matches[2]);
+
+      console.log(matches[1])
+      console.log(matches[2])
 
       core.exportVariable(matches[1], matches[2]);
     }
@@ -30,14 +27,18 @@ const sshAgentStart = () => {
 };
 
 const addPrivateKey = (privateKey) => {
+  console.log('Adding the private key');
   privateKey.split(/(?=-----BEGIN)/).forEach(function (key) {
     child_process.execSync("ssh-add -", { input: key.trim() + "\n" });
   });
 };
 
 const sshSetup = (privateKey) => {
+  console.log('Pre-sshHomeSetup');
   sshHomeSetup();
+  console.log('Pre-sshAgentStart');
   sshAgentStart();
+  console.log('Pre-addPrivateKey');
   addPrivateKey(privateKey);
   child_process.execSync("ssh-add -l", { stdio: "inherit" });
 };
