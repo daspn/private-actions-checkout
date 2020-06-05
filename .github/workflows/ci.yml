@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: Tests
 
 on: push
 
@@ -6,12 +6,12 @@ env:
   PRIVATE_CUSTOM_ACTIONS: '["daspn/private-custom-action-2@master"]'
 
 jobs:
-  test:
-    name: Unit test
+  ssh-key-provided:
+    name: SSH Private Key Provided Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-18.04, ubuntu-16.04, macos-10.15]
 
     steps:
       - uses: actions/checkout@v2
@@ -28,12 +28,12 @@ jobs:
         with:
           who_to_greet: World
 
-  test-no-ssh-key:
-    name: Unit test (no SSH provided)
+  no-ssh-key-provided:
+    name: No SSH Private Key Provided Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-18.04, ubuntu-16.04, macos-10.15]
 
     steps:
       - uses: actions/checkout@v2
