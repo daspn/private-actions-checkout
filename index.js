@@ -1,5 +1,5 @@
 const core = require('@actions/core');
-const { execFileSync, execSync } = require('child_process');
+const { execSync } = require('child_process');
 const fs = require('fs');
 
 const sshHomePath = `${process.env["HOME"]}/.ssh`;
@@ -12,16 +12,7 @@ const sshHomeSetup = () => {
 
 const sshAgentStart = () => {
   console.log('Starting the SSH agent.');
-  
-  const sshAgentOutput = execFileSync("ssh-agent");
-  const lines = sshAgentOutput.toString().split("\n");
-  for (const lineNumber in lines) {
-    const matches = /^(SSH_AUTH_SOCK|SSH_AGENT_PID)=(.*); export \1/.exec(lines[lineNumber]);
-    if (matches && matches.length > 0) {
-      process.env[matches[1]] = matches[2];
-      core.exportVariable(matches[1], matches[2]);
-    }
-  }
+  execSync("ssh-agent");
 };
 
 const addPrivateKey = (privateKey) => {
