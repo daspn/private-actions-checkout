@@ -1,8 +1,10 @@
-![Continuous Integration](https://github.com/daspn/private-actions-checkout/workflows/Continuous%20Integration/badge.svg)
+![Tests](https://github.com/daspn/private-actions-checkout/workflows/Tests/badge.svg)
 
 # private-actions-checkout
 
-Simplifies using custom private actions (and promotes code reuse) by looping throught a list of repositories and checking them out locally. Supports using more than one SSH key.
+Simplifies using custom private actions (and promotes code reuse) by looping through a list of repositories and checking them out into the job's workspace. Supports using multiple SSH keys.
+
+This actions is tested on `ubuntu-18.04`, `ubuntu-16.04`, `macos-10.15`. No Windows support yet.
 
 ## Usage
 
@@ -11,9 +13,9 @@ Create a workflow `.yml` file in your repositories `.github/workflows` directory
 
 ### Inputs
 
-* `actions_list` - [REQUIRED] List of private actions to checkout. Must be a JSON array and each entry must mutch the format owner/repo@ref
-* `checkout_base_path` - [REQUIRED] Where to checkout the custom actions
-* `ssh_private_key` - [OPTIONAL] If provided, configures the ssh-agent with the given private key. If not provided the code assumes that valid SSH credentials are available to the `git` executable.
+* `actions_list` - **REQUIRED**: List of private actions to checkout. Must be a JSON array and each entry must mutch the format owner/repo@ref
+* `checkout_base_path` - **REQUIRED**: Where to checkout the custom actions
+* `ssh_private_key` - **OPTIONAL**: If provided, configures the `ssh-agent` with the given private key. If not provided the code assumes that valid SSH credentials are available to the `git` executable.
 
 ### Example workflow
 
@@ -24,7 +26,7 @@ on: push
 
 jobs:
   example:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v2
@@ -59,7 +61,7 @@ on: push
 
 jobs:
   example:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v2
@@ -101,7 +103,7 @@ on: push
 
 jobs:
   example:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v2
@@ -140,12 +142,15 @@ To build this code, `Node.js 12.x` is [required](https://nodejs.org/en/download/
 
 After installing `Node.js 12.x`, install the NPM package `zeit/ncc` by running:
 
-```console
+```shell
 npm i -g @zeit/ncc
 ```
 
 ## Building the code
 
-```console
+```shell
+npm i
 npm run build
 ```
+
+This will update the `dist/index.js` file.
