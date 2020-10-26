@@ -2,14 +2,20 @@
   "name": "private-actions-checkout",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "build": "ncc build index.js"
+    "build": "ncc build src/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@actions/core": "^1.2.4"
+    "@actions/core": "^1.2.4",
+    "@actions/github": "^4.0.0",
+    "@octokit/app": "^4.2.1",
+    "is-base64": "^1.1.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.24.0"
   }
 }

@@ -1,17 +1,19 @@
-const core = require('@actions/core');
 const { execFileSync, execSync } = require('child_process');
 const fs = require('fs');
+const {
+  info,
+} =  require("@actions/core")
 
 const sshHomePath = `${process.env['HOME']}/.ssh`;
 const sshHomeSetup = () => {
-  console.log('Creating SSH home folder');
+  info('SSH > Creating SSH home folder');
   fs.mkdirSync(sshHomePath, { recursive: true });
-  console.log('Configuring known_hosts file');
+  info('SSH > Configuring known_hosts file');
   execSync(`ssh-keyscan -H github.com >> ${sshHomePath}/known_hosts`);
 };
 
 const sshAgentStart = () => {
-  console.log('Starting the SSH agent');
+  info('SSH > Starting the SSH agent');
   const sshAgentOutput = execFileSync('ssh-agent');
   const lines = sshAgentOutput.toString().split('\n');
   for (const lineNumber in lines) {
@@ -23,7 +25,7 @@ const sshAgentStart = () => {
 };
 
 const addPrivateKey = (privateKey) => {
-  console.log('Adding the private key');
+  info('SSH > Adding the private key');
   privateKey.split(/(?=-----BEGIN)/).forEach(function (key) {
     execSync('ssh-add -', { input: key.trim() + '\n' });
   });
@@ -36,25 +38,9 @@ const sshSetup = (privateKey) => {
   addPrivateKey(privateKey);
 };
 
-const hasValue = (input) => {
-  return input.trim().length !== 0;
-};
-
-const sshPrivateKey = core.getInput('ssh_private_key');
-
-if (hasValue(sshPrivateKey)) {
-  console.log('Setting up the SSH agent with the provided private key');
-  sshSetup(sshPrivateKey);
-} else {
-  console.log('No private key provided. Assuming valid SSH credentials are available');
-}
-
-const actionsList = JSON.parse(core.getInput('actions_list'));
-const basePath = core.getInput('checkout_base_path');
-
-const regex = /^(.+)\/(.+)@(.+)$/;
-actionsList.forEach((action) => {
-  const match = regex.exec(action);
+const repoRegex = /^(.+)\/(.+)@(.+)$/;
+const cloneWithSSH = (basePath, action) => {
+  const match = repoRegex.exec(action);
   if(match.length === 4) {
     const owner = match[1];
     const repo = match[2];
@@ -64,14 +50,20 @@ actionsList.forEach((action) => {
     const cloneDir = `${basePath}/${repo}`;
     const cloneCommand = `git clone --depth=1 --single-branch --branch ${ref} ${cloneUrl} ${cloneDir}`;
 
-    console.log(cloneCommand);
+    info(`SSH > ${cloneCommand}`);
     execSync(cloneCommand);
   } else {
-    console.log(`The value ${action} does not follow the required format: owner/repo@ref`);
+    info(`SSH > The value ${action} does not follow the required format: owner/repo@ref`);
   }
-});
+}
 
-if (hasValue(sshPrivateKey)) {
-  console.log('Killing the ssh-agent')
-  execSync('kill ${SSH_AGENT_PID}', { stdio: 'inherit' });
+const cleanupSSH = () => {
+  info('SSH > Killing the ssh-agent')
+  execSync('SSH > kill ${SSH_AGENT_PID}', { stdio: 'inherit' });
+}
+
+module.exports = {
+  sshSetup,
+  cloneWithSSH,
+  cleanupSSH
 }
