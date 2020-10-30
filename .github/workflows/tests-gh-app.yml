@@ -1,13 +1,15 @@
-name: Tests
+name: GitHub App tests
 
-on: push
+on:
+  - push
+  - pull_request_target
 
 env:
   PRIVATE_CUSTOM_ACTIONS: '["daspn/private-custom-action-2@master"]'
 
 jobs:
-  ssh-key-provided:
-    name: SSH Private Key Provided Test
+  app-key-base64:
+    name: GitHub app private checkout with a base64 key encoded
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -21,15 +23,16 @@ jobs:
         with:
           actions_list: ${{ env.PRIVATE_CUSTOM_ACTIONS }}
           checkout_base_path: ./.github/actions
-          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          app_id: ${{ secrets.APP_ID }}
+          app_private_key: ${{ secrets.APP_PRIVATE_KEY_BASE64 }}
 
       - name: Say hello
         uses: ./.github/actions/private-custom-action-2
         with:
           who_to_greet: World
 
-  no-ssh-key-provided:
-    name: No SSH Private Key Provided Test
+  app-key-plain:
+    name: GitHub app private checkout with a plain key encoded
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -38,15 +41,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: webfactory/ssh-agent@v0.2.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: Private actions checkout
         uses: ./
         with:
           actions_list: ${{ env.PRIVATE_CUSTOM_ACTIONS }}
           checkout_base_path: ./.github/actions
+          app_id: ${{ secrets.APP_ID }}
+          app_private_key: ${{ secrets.APP_PRIVATE_KEY_PLAIN }}
 
       - name: Say hello
         uses: ./.github/actions/private-custom-action-2

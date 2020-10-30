@@ -16,7 +16,7 @@ Create a workflow `.yml` file in your repositories `.github/workflows` directory
 To checkout private repositories we need a supported authentication accepted by the Git protocol. This action supports
 GitHub Apps and SSh keys.
 
-For enterprise environments we recommend using a GitHub app as it doesn't require having a machine account.
+For enterprise environments we recommend using a GitHub app per organization with 1 installation as it doesn't require having a machine account.
 
 ### Inputs
 
@@ -27,7 +27,7 @@ If you want to use **GitHub Apps** (recommended):
 * `app_id`: the GitHub App id obtained when you [create a GitHub app](https://docs.github.com/en/free-pro-team@latest/developers/apps/creating-a-github-app)
 * `app_private_key`: the [GitHub App private key](https://docs.github.com/en/free-pro-team@latest/developers/apps/authenticating-with-github-apps#generating-a-private-key) generated for an app with permissions on the repositories
 
-> We support the key being plain and base64 encoded. To encode the private key you can use the following command: `cat your_app_key.pem | base64 -w 0 && echo`
+> We support the key being plain and base64 encoded. To encode the private key you can use the following command: `cat key.pem | base64 | tr -d \\n && echo`
 
 If you want to use **SSH keys**:
 * `ssh_private_key` - **OPTIONAL**: If provided, configures the `ssh-agent` with the given private key. If not provided the code assumes that valid SSH credentials are available to the `git` executable.

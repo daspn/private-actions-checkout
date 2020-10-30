@@ -16,6 +16,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const os = __importStar(__webpack_require__(2087));
+const utils_1 = __webpack_require__(5278);
 /**
  * Commands
  *
@@ -69,28 +70,14 @@ class Command {
         return cmdStr;
     }
 }
-/**
- * Sanitizes an input into a string so it can be passed into issueCommand safely
- * @param input input to sanitize into a string
- */
-function toCommandValue(input) {
-    if (input === null || input === undefined) {
-        return '';
-    }
-    else if (typeof input === 'string' || input instanceof String) {
-        return input;
-    }
-    return JSON.stringify(input);
-}
-exports.toCommandValue = toCommandValue;
 function escapeData(s) {
-    return toCommandValue(s)
+    return utils_1.toCommandValue(s)
         .replace(/%/g, '%25')
         .replace(/\r/g, '%0D')
         .replace(/\n/g, '%0A');
 }
 function escapeProperty(s) {
-    return toCommandValue(s)
+    return utils_1.toCommandValue(s)
         .replace(/%/g, '%25')
         .replace(/\r/g, '%0D')
         .replace(/\n/g, '%0A')
@@ -124,6 +111,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const command_1 = __webpack_require__(7351);
+const file_command_1 = __webpack_require__(717);
+const utils_1 = __webpack_require__(5278);
 const os = __importStar(__webpack_require__(2087));
 const path = __importStar(__webpack_require__(5622));
 /**
@@ -150,9 +139,17 @@ var ExitCode;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function exportVariable(name, val) {
-    const convertedVal = command_1.toCommandValue(val);
+    const convertedVal = utils_1.toCommandValue(val);
     process.env[name] = convertedVal;
-    command_1.issueCommand('set-env', { name }, convertedVal);
+    const filePath = process.env['GITHUB_ENV'] || '';
+    if (filePath) {
+        const delimiter = '_GitHubActionsFileCommandDelimeter_';
+        const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`;
+        file_command_1.issueCommand('ENV', commandValue);
+    }
+    else {
+        command_1.issueCommand('set-env', { name }, convertedVal);
+    }
 }
 exports.exportVariable = exportVariable;
 /**
@@ -168,7 +165,13 @@ exports.setSecret = setSecret;
  * @param inputPath
  */
 function addPath(inputPath) {
-    command_1.issueCommand('add-path', {}, inputPath);
+    const filePath = process.env['GITHUB_PATH'] || '';
+    if (filePath) {
+        file_command_1.issueCommand('PATH', inputPath);
+    }
+    else {
+        command_1.issueCommand('add-path', {}, inputPath);
+    }
     process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`;
 }
 exports.addPath = addPath;
@@ -327,6 +330,68 @@ function getState(name) {
 }
 exports.getState = getState;
 //# sourceMappingURL=core.js.map
+
+/***/ }),
+
+/***/ 717:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+// For internal use, subject to change.
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+// We use any as a valid input type
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const fs = __importStar(__webpack_require__(5747));
+const os = __importStar(__webpack_require__(2087));
+const utils_1 = __webpack_require__(5278);
+function issueCommand(command, message) {
+    const filePath = process.env[`GITHUB_${command}`];
+    if (!filePath) {
+        throw new Error(`Unable to find environment variable for file command ${command}`);
+    }
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`Missing file at path: ${filePath}`);
+    }
+    fs.appendFileSync(filePath, `${utils_1.toCommandValue(message)}${os.EOL}`, {
+        encoding: 'utf8'
+    });
+}
+exports.issueCommand = issueCommand;
+//# sourceMappingURL=file-command.js.map
+
+/***/ }),
+
+/***/ 5278:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+// We use any as a valid input type
+/* eslint-disable @typescript-eslint/no-explicit-any */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/**
+ * Sanitizes an input into a string so it can be passed into issueCommand safely
+ * @param input input to sanitize into a string
+ */
+function toCommandValue(input) {
+    if (input === null || input === undefined) {
+        return '';
+    }
+    else if (typeof input === 'string' || input instanceof String) {
+        return input;
+    }
+    return JSON.stringify(input);
+}
+exports.toCommandValue = toCommandValue;
+//# sourceMappingURL=utils.js.map
 
 /***/ }),
 
@@ -11522,56 +11587,108 @@ try {
 
 /***/ }),
 
-/***/ 8675:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ 2759:
+/***/ ((module) => {
 
-//Code based on https://github.com/tibdex/github-app-token
+const repoRegex = /^([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)(@([A-Za-z0-9_.-]+))?$/
+const convertActionToCloneCommand = (cloneDir, action, cloneUrlBuilder) => {
+  const match = repoRegex.exec(action)
+  // Validate the format
+  if (!match) throw new Error(`The action ${action} does not match with the format org/owner(@branch|@tag)? format`)
+
+  const params = {
+    owner: match[1],
+    repo: match[2],
+    ref: match[4]
+  }
+  // Validate owner and repo
+  if (!params.owner || !params.repo) throw new Error(`The action ${action} doesn't seem to contain a valid owner or repo`)
+
+  const defaultCommand = 'git clone --depth=1'
+  const branchCommand = params.ref ? `--single-branch --branch ${params.ref}` : ''
+  const cloneUrl = cloneUrlBuilder(params)
+  return `${defaultCommand} ${branchCommand} ${cloneUrl} ${cloneDir}/${params.repo}`
+}
+
+module.exports = {
+  convertActionToCloneCommand
+}
+
+
+/***/ }),
+
+/***/ 9187:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 const {
   error,
   getInput,
   info,
   setFailed,
-  setSecret,
-} =  __webpack_require__(2186)
+  setSecret
+} = __webpack_require__(2186)
 const { context, getOctokit } = __webpack_require__(5438)
 const { App } = __webpack_require__(4389)
 const isBase64 = __webpack_require__(1310)
+const { execSync } = __webpack_require__(3129)
+const { convertActionToCloneCommand } = __webpack_require__(2759)
 
+// Code based on https://github.com/tibdex/github-app-token
 async function obtainAppToken () {
   try {
     // Get the parameters and throw if they are not found
-    const id = Number(getInput("app_id", { required: true }));
-    const privateKeyInput = getInput("private_key", { required: true });
+    const id = Number(getInput('app_id', { required: true }))
+    const privateKeyInput = getInput('app_private_key', { required: true })
     const privateKey = isBase64(privateKeyInput)
-      ? Buffer.from(privateKeyInput, "base64").toString("utf8")
-      : privateKeyInput;
+      ? Buffer.from(privateKeyInput, 'base64').toString('utf8')
+      : privateKeyInput
+    info(`App > Base 64 detected on private key: ${isBase64(privateKeyInput)}`)
 
-    // Obtain the installation token
+    // Obtain JWT
     const app = new App({
       id,
       privateKey
-    });
-    const jwt = app.getSignedJsonWebToken();
-    const octokit = getOctokit(jwt);
+    })
+    const jwt = app.getSignedJsonWebToken()
+
+    //Obtain installation
+    const octokit = getOctokit(jwt)
+    const installations = await octokit.apps.listInstallations()
+    if(installations.data.length !== 1) {
+      error(`App > Only 1 installation is allowed for this app. We detected it has ${installations.data.length} installations`)
+      return;
+    }
     const {
-      data: { id: installationId },
-    } = await octokit.apps.getRepoInstallation(context.repo);
+      id: installationId
+    } = installations.data[0]
+    info(`App > Installation: ${installationId}`)
+
+    //Obtain token
     const token = await app.getInstallationAccessToken({
-      installationId,
-    });
-    setSecret(token);
-    info("GitHub app token generated successfully");
+      installationId
+    })
+    setSecret(token)
+    info('App > GitHub app token generated successfully')
     return token
   } catch (exception) {
-    error(exception);
-    setFailed(exception.message);
+    error(exception)
+    setFailed(exception.message)
   }
 }
 
-module.exports = {
-  obtainAppToken
+const cloneWithApp = (basePath, action, token) => {
+  const command = convertActionToCloneCommand(basePath, action, (params) =>
+    `https://x-access-token:${token}@github.com/${params.owner}/${params.repo}.git`
+  )
+  info(`App > ${command}`)
+  execSync(command)
 }
+
+module.exports = {
+  obtainAppToken,
+  cloneWithApp
+}
+
 
 /***/ }),
 
@@ -11586,10 +11703,13 @@ const {
 } = __webpack_require__(2186)
 const {
   sshSetup,
-  cloneSSH,
+  cloneWithSSH,
   cleanupSSH
 } = __webpack_require__(1368)
-const { obtainAppToken } = __webpack_require__(8675)
+const {
+  obtainAppToken,
+  cloneWithApp
+} = __webpack_require__(9187)
 
 const hasValue = (input) => {
   return input.trim().length !== 0
@@ -11597,7 +11717,6 @@ const hasValue = (input) => {
 
 const CLONE_STRATEGY_SSH = 'ssh'
 const CLONE_STRATEGY_APP = 'app'
-const CLONE_STRATEGY_NONE = 'none'
 
 const run = async () => {
   try {
@@ -11612,8 +11731,12 @@ const run = async () => {
     // If appId exist we will go ahead and use the GitHub App
     if (hasValue(appId)) {
       cloneStrategy = CLONE_STRATEGY_APP
-      const appToken = await obtainAppToken()
-      info('SSH > Cloning using SSH strategy')
+      appToken = await obtainAppToken()
+      if(!appToken) {
+        setFailed('App > App token generation failed. Workflow can not continue')
+        return
+      }
+      info('App > Cloning using GitHub App strategy')
     } else if (hasValue(sshPrivateKey)) {
       cloneStrategy = CLONE_STRATEGY_SSH
       info('SSH > Cloning using SSH strategy')
@@ -11625,17 +11748,17 @@ const run = async () => {
       info('SSH > No private key provided. Assuming valid SSH credentials are available')
     }
 
-    //Proceed with the clones
+    // Proceed with the clones
     actionsList.forEach((action) => {
-      if(cloneStrategy === CLONE_STRATEGY_APP){
-        //TODO clone with GitHub app
-      }else if(cloneStrategy === CLONE_STRATEGY_SSH){
-        cloneSSH(basePath, action)
+      if (cloneStrategy === CLONE_STRATEGY_APP) {
+        cloneWithApp(basePath, action, appToken)
+      } else if (cloneStrategy === CLONE_STRATEGY_SSH) {
+        cloneWithSSH(basePath, action)
       }
     })
 
-    //Cleanup
-    if(cloneStrategy === CLONE_STRATEGY_SSH){
+    // Cleanup
+    if (cloneStrategy === CLONE_STRATEGY_SSH) {
       cleanupSSH()
     }
   } catch (e) {
@@ -11646,80 +11769,73 @@ const run = async () => {
 
 run()
 
+
 /***/ }),
 
 /***/ 1368:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-const { execFileSync, execSync } = __webpack_require__(3129);
-const fs = __webpack_require__(5747);
+const { execFileSync, execSync } = __webpack_require__(3129)
+const fs = __webpack_require__(5747)
 const {
-  info,
-} =  __webpack_require__(2186)
+  info
+} = __webpack_require__(2186)
 
-const sshHomePath = `${process.env['HOME']}/.ssh`;
+const { convertActionToCloneCommand } = __webpack_require__(2759)
+const sshHomePath = `${process.env.HOME}/.ssh`
 const sshHomeSetup = () => {
-  info('SSH > Creating SSH home folder');
-  fs.mkdirSync(sshHomePath, { recursive: true });
-  info('SSH > Configuring known_hosts file');
-  execSync(`ssh-keyscan -H github.com >> ${sshHomePath}/known_hosts`);
-};
+  info('SSH > Creating SSH home folder')
+  fs.mkdirSync(sshHomePath, { recursive: true })
+  info('SSH > Configuring known_hosts file')
+  execSync(`ssh-keyscan -H github.com >> ${sshHomePath}/known_hosts`)
+}
 
 const sshAgentStart = () => {
-  info('SSH > Starting the SSH agent');
-  const sshAgentOutput = execFileSync('ssh-agent');
-  const lines = sshAgentOutput.toString().split('\n');
+  info('SSH > Starting the SSH agent')
+  const sshAgentOutput = execFileSync('ssh-agent')
+  const lines = sshAgentOutput.toString().split('\n')
   for (const lineNumber in lines) {
-    const matches = /^(SSH_AUTH_SOCK|SSH_AGENT_PID)=(.*); export \1/.exec(lines[lineNumber]);
+    const matches = /^(SSH_AUTH_SOCK|SSH_AGENT_PID)=(.*); export \1/.exec(lines[lineNumber])
     if (matches && matches.length > 0) {
-      process.env[matches[1]] = matches[2];
+      process.env[matches[1]] = matches[2]
     }
   }
-};
+}
 
 const addPrivateKey = (privateKey) => {
-  info('SSH > Adding the private key');
+  info('SSH > Adding the private key')
   privateKey.split(/(?=-----BEGIN)/).forEach(function (key) {
-    execSync('ssh-add -', { input: key.trim() + '\n' });
-  });
-  execSync('ssh-add -l', { stdio: 'inherit' });
-};
+    execSync('ssh-add -', { input: key.trim() + '\n' })
+  })
+  execSync('ssh-add -l', { stdio: 'inherit' })
+}
 
 const sshSetup = (privateKey) => {
-  sshHomeSetup();
-  sshAgentStart();
-  addPrivateKey(privateKey);
-};
+  sshHomeSetup()
+  sshAgentStart()
+  addPrivateKey(privateKey)
+}
 
-const repoRegex = /^(.+)\/(.+)@(.+)$/;
-const cloneSSH = (basePath, action) => {
-  const match = repoRegex.exec(action);
-  if(match.length === 4) {
-    const owner = match[1];
-    const repo = match[2];
-    const ref = match[3];
-
-    const cloneUrl = `git@github.com:${owner}/${repo}.git`;
-    const cloneDir = `${basePath}/${repo}`;
-    const cloneCommand = `git clone --depth=1 --single-branch --branch ${ref} ${cloneUrl} ${cloneDir}`;
-
-    info(cloneCommand);
-    execSync(cloneCommand);
-  } else {
-    info(`SSH > The value ${action} does not follow the required format: owner/repo@ref`);
-  }
+const cloneWithSSH = (basePath, action) => {
+  const command = convertActionToCloneCommand(basePath, action, (params) =>
+    `git@github.com:${params.owner}/${params.repo}.git`
+  )
+  info(`SSH > ${command}`)
+  execSync(command)
 }
 
 const cleanupSSH = () => {
   info('SSH > Killing the ssh-agent')
-  execSync('SSH > kill ${SSH_AGENT_PID}', { stdio: 'inherit' });
+  /* eslint no-template-curly-in-string: "off" */
+  execSync('SSH > kill ${SSH_AGENT_PID}', { stdio: 'inherit' })
 }
 
 module.exports = {
   sshSetup,
-  cloneSSH,
+  cloneWithSSH,
   cleanupSSH
 }
+
 
 /***/ }),
 

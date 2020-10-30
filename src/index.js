@@ -34,8 +34,12 @@ const run = async () => {
     // If appId exist we will go ahead and use the GitHub App
     if (hasValue(appId)) {
       cloneStrategy = CLONE_STRATEGY_APP
-      const appToken = await obtainAppToken()
-      info('SSH > Cloning using SSH strategy')
+      appToken = await obtainAppToken()
+      if(!appToken) {
+        setFailed('App > App token generation failed. Workflow can not continue')
+        return
+      }
+      info('App > Cloning using GitHub App strategy')
     } else if (hasValue(sshPrivateKey)) {
       cloneStrategy = CLONE_STRATEGY_SSH
       info('SSH > Cloning using SSH strategy')
@@ -47,18 +51,17 @@ const run = async () => {
       info('SSH > No private key provided. Assuming valid SSH credentials are available')
     }
 
-    //Proceed with the clones
+    // Proceed with the clones
     actionsList.forEach((action) => {
-      if(cloneStrategy === CLONE_STRATEGY_APP){
-        //TODO clone with GitHub app
+      if (cloneStrategy === CLONE_STRATEGY_APP) {
         cloneWithApp(basePath, action, appToken)
-      }else if(cloneStrategy === CLONE_STRATEGY_SSH){
+      } else if (cloneStrategy === CLONE_STRATEGY_SSH) {
         cloneWithSSH(basePath, action)
       }
     })
 
-    //Cleanup
-    if(cloneStrategy === CLONE_STRATEGY_SSH){
+    // Cleanup
+    if (cloneStrategy === CLONE_STRATEGY_SSH) {
       cleanupSSH()
     }
   } catch (e) {
