@@ -11594,7 +11594,7 @@ const repoRegex = /^([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)(@([A-Za-z0-9_.-]+))?$/
 const convertActionToCloneCommand = (cloneDir, action, cloneUrlBuilder) => {
   const match = repoRegex.exec(action)
   // Validate the format
-  if (!match) throw new Error(`The action ${action} does not match with the format org/owner(@branch|@tag)? format`)
+  if (!match) throw new Error(`The action ${action} does not match with the (org|owner)/repo[@branch|@tag] format`)
 
   const params = {
     owner: match[1],
@@ -11622,23 +11622,20 @@ module.exports = {
 
 const {
   error,
-  getInput,
   info,
   setFailed,
   setSecret
 } = __webpack_require__(2186)
-const { context, getOctokit } = __webpack_require__(5438)
+const { getOctokit } = __webpack_require__(5438)
 const { App } = __webpack_require__(4389)
 const isBase64 = __webpack_require__(1310)
 const { execSync } = __webpack_require__(3129)
 const { convertActionToCloneCommand } = __webpack_require__(2759)
 
 // Code based on https://github.com/tibdex/github-app-token
-async function obtainAppToken () {
+async function obtainAppToken (id, privateKeyInput) {
   try {
     // Get the parameters and throw if they are not found
-    const id = Number(getInput('app_id', { required: true }))
-    const privateKeyInput = getInput('app_private_key', { required: true })
     const privateKey = isBase64(privateKeyInput)
       ? Buffer.from(privateKeyInput, 'base64').toString('utf8')
       : privateKeyInput
@@ -11724,19 +11721,20 @@ const run = async () => {
     const actionsList = JSON.parse(getInput('actions_list'))
     const basePath = getInput('checkout_base_path')
     const appId = getInput('app_id')
+    const privateKey = getInput('app_private_key')
 
     let cloneStrategy
     let appToken
 
     // If appId exist we will go ahead and use the GitHub App
-    if (hasValue(appId)) {
+    if (hasValue(appId) && hasValue(privateKey)) {
       cloneStrategy = CLONE_STRATEGY_APP
-      appToken = await obtainAppToken()
+      info('App > Cloning using GitHub App strategy')
+      appToken = await obtainAppToken(appId, privateKey)
       if(!appToken) {
         setFailed('App > App token generation failed. Workflow can not continue')
         return
       }
-      info('App > Cloning using GitHub App strategy')
     } else if (hasValue(sshPrivateKey)) {
       cloneStrategy = CLONE_STRATEGY_SSH
       info('SSH > Cloning using SSH strategy')

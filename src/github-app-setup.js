@@ -1,22 +1,19 @@
 const {
   error,
-  getInput,
   info,
   setFailed,
   setSecret
 } = require('@actions/core')
-const { context, getOctokit } = require('@actions/github')
+const { getOctokit } = require('@actions/github')
 const { App } = require('@octokit/app')
 const isBase64 = require('is-base64')
 const { execSync } = require('child_process')
 const { convertActionToCloneCommand } = require('./action-parser')
 
 // Code based on https://github.com/tibdex/github-app-token
-async function obtainAppToken () {
+async function obtainAppToken (id, privateKeyInput) {
   try {
     // Get the parameters and throw if they are not found
-    const id = Number(getInput('app_id', { required: true }))
-    const privateKeyInput = getInput('app_private_key', { required: true })
     const privateKey = isBase64(privateKeyInput)
       ? Buffer.from(privateKeyInput, 'base64').toString('utf8')
       : privateKeyInput

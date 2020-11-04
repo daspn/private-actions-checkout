@@ -2,7 +2,7 @@ const repoRegex = /^([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)(@([A-Za-z0-9_.-]+))?$/
 const convertActionToCloneCommand = (cloneDir, action, cloneUrlBuilder) => {
   const match = repoRegex.exec(action)
   // Validate the format
-  if (!match) throw new Error(`The action ${action} does not match with the format org/owner(@branch|@tag)? format`)
+  if (!match) throw new Error(`The action ${action} does not match with the (org|owner)/repo[@branch|@tag] format`)
 
   const params = {
     owner: match[1],

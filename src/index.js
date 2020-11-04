@@ -27,19 +27,20 @@ const run = async () => {
     const actionsList = JSON.parse(getInput('actions_list'))
     const basePath = getInput('checkout_base_path')
     const appId = getInput('app_id')
+    const privateKey = getInput('app_private_key')
 
     let cloneStrategy
     let appToken
 
     // If appId exist we will go ahead and use the GitHub App
-    if (hasValue(appId)) {
+    if (hasValue(appId) && hasValue(privateKey)) {
       cloneStrategy = CLONE_STRATEGY_APP
-      appToken = await obtainAppToken()
+      info('App > Cloning using GitHub App strategy')
+      appToken = await obtainAppToken(appId, privateKey)
       if(!appToken) {
         setFailed('App > App token generation failed. Workflow can not continue')
         return
       }
-      info('App > Cloning using GitHub App strategy')
     } else if (hasValue(sshPrivateKey)) {
       cloneStrategy = CLONE_STRATEGY_SSH
       info('SSH > Cloning using SSH strategy')

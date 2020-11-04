@@ -14,7 +14,7 @@ Create a workflow `.yml` file in your repositories `.github/workflows` directory
 
 ### Supported authentications
 To checkout private repositories we need a supported authentication accepted by the Git protocol. This action supports
-GitHub Apps and SSh keys.
+GitHub Apps and SSH keys.
 
 For enterprise environments we recommend using a GitHub app per organization with 1 installation as it doesn't require having a machine account.
 
@@ -78,7 +78,7 @@ jobs:
 ```
 
 ### SSH
-**Single ssh key:**
+**Single SSH key:**
 ```yaml
 name: 'Example workflow'
 
