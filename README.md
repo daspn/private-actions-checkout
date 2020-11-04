@@ -1,4 +1,5 @@
-![Tests](https://github.com/daspn/private-actions-checkout/workflows/Tests/badge.svg)
+![SSH Tests](https://github.com/daspn/private-actions-checkout/workflows/SSH%20Tests/badge.svg)
+![GitHub App tests](https://github.com/daspn/private-actions-checkout/workflows/GitHub%20App%20tests/badge.svg)
 
 # private-actions-checkout
 
