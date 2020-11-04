@@ -11756,7 +11756,7 @@ const run = async () => {
     })
 
     // Cleanup
-    if (cloneStrategy === CLONE_STRATEGY_SSH) {
+    if (cloneStrategy === CLONE_STRATEGY_SSH && hasValue(sshPrivateKey)) {
       cleanupSSH()
     }
   } catch (e) {
