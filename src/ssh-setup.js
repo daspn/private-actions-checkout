@@ -50,7 +50,7 @@ const cloneWithSSH = (basePath, action) => {
 const cleanupSSH = () => {
   info('SSH > Killing the ssh-agent')
   /* eslint no-template-curly-in-string: "off" */
-  execSync('SSH > kill ${SSH_AGENT_PID}', { stdio: 'inherit' })
+  execSync('kill ${SSH_AGENT_PID}', { stdio: 'inherit' })
 }
 
 module.exports = {
