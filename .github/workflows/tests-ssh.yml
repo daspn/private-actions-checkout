@@ -1,0 +1,56 @@
+name: SSH Tests
+
+on:
+  - push
+  - pull_request_target
+
+env:
+  PRIVATE_CUSTOM_ACTIONS: '["daspn/private-custom-action-2@master"]'
+
+jobs:
+  ssh-key-provided:
+    name: SSH Private Key Provided Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, ubuntu-16.04, macos-10.15]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Private actions checkout
+        uses: ./
+        with:
+          actions_list: ${{ env.PRIVATE_CUSTOM_ACTIONS }}
+          checkout_base_path: ./.github/actions
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Say hello
+        uses: ./.github/actions/private-custom-action-2
+        with:
+          who_to_greet: World
+
+  no-ssh-key-provided:
+    name: No SSH Private Key Provided Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, ubuntu-16.04, macos-10.15]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: webfactory/ssh-agent@v0.2.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Private actions checkout
+        uses: ./
+        with:
+          actions_list: ${{ env.PRIVATE_CUSTOM_ACTIONS }}
+          checkout_base_path: ./.github/actions
+
+      - name: Say hello
+        uses: ./.github/actions/private-custom-action-2
+        with:
+          who_to_greet: World
