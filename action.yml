@@ -7,8 +7,15 @@ inputs:
   checkout_base_path:
     description: Where to checkout the custom actions
     required: true
+    default: ./.github/actions
   ssh_private_key:
     description: If provided, configures the ssh-agent with the given private key.
+    required: false
+  app_id:
+    description: The app id to authenticate with a GitHub app
+    required: false
+  app_private_key:
+    description: The app private key to authenticate with a GitHub app
     required: false
 runs:
   using: "node12"
