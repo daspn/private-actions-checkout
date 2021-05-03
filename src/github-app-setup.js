@@ -51,6 +51,12 @@ async function obtainAppToken (id, privateKeyInput) {
   }
 }
 
+const configureAppGit = (token) => {
+  const command = `git config --global url."https://x-access-token:${token}@github.com/".insteadOf "https://github.com/"`
+  info(`App > ${command}`)
+  execSync(command)
+}
+
 const cloneWithApp = (basePath, action, token) => {
   const command = convertActionToCloneCommand(basePath, action, (params) =>
     `https://x-access-token:${token}@github.com/${params.owner}/${params.repo}.git`
@@ -61,5 +67,6 @@ const cloneWithApp = (basePath, action, token) => {
 
 module.exports = {
   obtainAppToken,
-  cloneWithApp
+  cloneWithApp,
+  configureAppGit
 }

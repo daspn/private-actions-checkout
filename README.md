@@ -6,6 +6,8 @@
 Simplifies using custom private actions (and promotes code reuse) by looping through a list of repositories and checking 
 them out into the job's workspace. Supports using GitHub Apps or multiple SSH keys.
 
+Optionally configures git to allow subsequent steps to provide authenticated access private repos.
+
 This actions is tested on `ubuntu-18.04`, `ubuntu-16.04`, `macos-10.15`. No Windows support yet.
 
 ## Usage
@@ -21,8 +23,10 @@ For enterprise environments we recommend using a GitHub app per organization wit
 
 ### Inputs
 
-* `actions_list` - **REQUIRED**: List of private actions to checkout. Must be a JSON array and each entry must mutch the format owner/repo@ref
+* `actions_list` - **REQUIRED**: List of private actions to checkout. Must be a JSON array and each entry must match the format owner/repo@ref.  May be an empty array if no actions are required.
 * `checkout_base_path` - **OPTIONAL**: Where to checkout the custom actions. It uses `./.github/actions` as default path
+* `return_app_token` - **OPTIONAL**: If set to `true` then an output variable called `app-token` will be set that can be used for basic auth to github by subsequent steps (only works with Github Apps as the authentication method)
+* `configure_git` - **OPTIONAL**: If set to `true` then `git config` is executed to grant subsequent steps access to other private repos using the ssh or Github App token.
 
 If you want to use **GitHub Apps** (recommended):
 * `app_id`: the GitHub App id obtained when you [create a GitHub app](https://docs.github.com/en/free-pro-team@latest/developers/apps/creating-a-github-app)
@@ -31,7 +35,7 @@ If you want to use **GitHub Apps** (recommended):
 > We support the key being plain and base64 encoded. To encode the private key you can use the following command: `cat key.pem | base64 | tr -d \\n && echo`
 
 If you want to use **SSH keys**:
-* `ssh_private_key` - **OPTIONAL**: If provided, configures the `ssh-agent` with the given private key. If not provided the code assumes that valid SSH credentials are available to the `git` executable.
+* `ssh_private_key` - **OPTIONAL**: If provided, configures the `ssh-agent` with the given private key. If not provided the code assumes that valid SSH credentials are available to the `git` executable.  If `configure_git` is enabled then the agent will be left running until the end of the job. 
 
 ## GitHub app requisites
 If you want to use this action with a GitHub app you will need to setup some permissions.
@@ -193,6 +197,37 @@ jobs:
       uses: ./.github/actions/my-private-action-2
 ```
 
+GitHub App authorizing a Go application to fetch other private dependencies:
+```yaml
+name: 'Example workflow'
+
+on: push
+
+jobs:
+  example:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Private actions checkout
+      uses: daspn/private-actions-checkout@v2
+      with:
+        app_id: ${{ secrets.APP_ID }}
+        app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
+        configure_git: true
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.15
+
+    # Go build will be able to access other private repos authorized to the app
+    - name: Build
+      run: go build -v .
+```
+
+
 ### How to build
 
 #### Local environment setup
@@ -212,4 +247,4 @@ npm i
 npm run build
 ```
 
-This will update the `dist/index.js` file.
+This will update the `dist/index.js` and `dist/cleanup/index.js` files.

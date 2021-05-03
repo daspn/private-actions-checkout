@@ -4,6 +4,7 @@ inputs:
   actions_list:
     description: List of private actions to checkout. Must be a JSON array and each entry must mutch the format owner/repo@ref
     required: true
+    default: '[]'
   checkout_base_path:
     description: Where to checkout the custom actions
     required: true
@@ -17,9 +18,19 @@ inputs:
   app_private_key:
     description: The app private key to authenticate with a GitHub app
     required: false
+  return_app_token:
+    description: Sets app-token as an output if set to "true"
+    required: false
+  configure_git:
+    description: Configures git to continue to use the ssh key or app token after the action exits if set to "true"
+    required: false
+outputs:
+  app-token:
+    description: transient token generated if a Github app was supplied
 runs:
   using: "node12"
   main: "dist/index.js"
+  post: "dist/cleanup/index.js"
 branding:
-  icon: 'download-cloud'  
+  icon: 'download-cloud'
   color: 'yellow'
