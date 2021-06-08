@@ -23,7 +23,7 @@ For enterprise environments we recommend using a GitHub app per organization wit
 
 ### Inputs
 
-* `actions_list` - **REQUIRED**: List of private actions to checkout. Must be a JSON array and each entry must match the format owner/repo@ref.  May be an empty array if no actions are required.
+* `actions_list` - **OPTIONAL**: List of private actions to checkout. Must be a JSON array and each entry must match the format owner/repo@ref.  May be an empty array if no actions are required.
 * `checkout_base_path` - **OPTIONAL**: Where to checkout the custom actions. It uses `./.github/actions` as default path
 * `return_app_token` - **OPTIONAL**: If set to `true` then an output variable called `app-token` will be set that can be used for basic auth to github by subsequent steps (only works with Github Apps as the authentication method)
 * `configure_git` - **OPTIONAL**: If set to `true` then `git config` is executed to grant subsequent steps access to other private repos using the ssh or Github App token.
