@@ -5,10 +5,21 @@ const {
   setSecret
 } = require('@actions/core')
 const { getOctokit } = require('@actions/github')
-const { App } = require('@octokit/app')
 const isBase64 = require('is-base64')
 const { execSync } = require('child_process')
 const { convertActionToCloneCommand } = require('./action-parser')
+const { createAppAuth } = require("@octokit/auth-app");
+const { request } = require("@octokit/request");
+const { HttpsProxyAgent } = require('https-proxy-agent');
+
+// Specify custom HTTP agent that obeys proxy env variable
+function getHttpsProxyAgent() {
+  const proxy = process.env["HTTPS_PROXY"] || process.env["https_proxy"];
+
+  if (!proxy) return undefined;
+
+  return new HttpsProxyAgent(proxy);
+}
 
 // Code based on https://github.com/tibdex/github-app-token
 async function obtainAppToken (id, privateKeyInput) {
@@ -19,32 +30,56 @@ async function obtainAppToken (id, privateKeyInput) {
       : privateKeyInput
     info(`App > Base 64 detected on private key: ${isBase64(privateKeyInput)}`)
 
-    // Obtain JWT
-    const app = new App({
-      id,
-      privateKey
-    })
-    const jwt = app.getSignedJsonWebToken()
+    // Instantiate custom request object with custom agent
+    const customRequest = request.defaults({
+      request: {
+        agent: getHttpsProxyAgent()
+      }
+    });
 
-    //Obtain installation
-    const octokit = getOctokit(jwt)
-    const installations = await octokit.apps.listInstallations()
+    // Obtain JWT
+    const auth = createAppAuth({
+      appId: id,
+      privateKey,
+      request: customRequest
+    });
+
+    const appAuthentication = await auth({ type: "app" });
+    const jwt = appAuthentication.token;
+    if(!jwt) {
+      error('App > Cannot get app JWT');
+      return;
+    }
+
+    // Obtain installation id
+    const octokit = getOctokit(jwt);
+    const installations = await octokit.apps.listInstallations();
     if(installations.data.length !== 1) {
-      error(`App > Only 1 installation is allowed for this app. We detected it has ${installations.data.length} installations`)
+      error(`App > Only 1 installation is allowed for this app. We detected it has ${installations.data.length} installations`);
       return;
     }
     const {
       id: installationId
-    } = installations.data[0]
-    info(`App > Installation: ${installationId}`)
+    } = installations.data[0];
+    info(`App > Installation: ${installationId}`);
 
-    //Obtain token
-    const token = await app.getInstallationAccessToken({
-      installationId
-    })
-    setSecret(token)
-    info('App > GitHub app token generated successfully')
-    return token
+    // Obtain token
+    const installationAuth = createAppAuth({
+      appId: id,
+      privateKey,
+      installationId,
+      request: customRequest
+    });
+    const installationAuthentication = await installationAuth({ type: "installation" });
+    const token = installationAuthentication.token;
+    if(!token) {
+      error('App > Cannot get app token');
+      return;
+    }
+
+    setSecret(token);
+    info('App > GitHub app token generated successfully');
+    return token;
   } catch (exception) {
     error(exception)
     setFailed(exception.message)
