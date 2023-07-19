@@ -8,7 +8,7 @@ them out into the job's workspace. Supports using GitHub Apps or multiple SSH ke
 
 Optionally configures git to allow subsequent steps to provide authenticated access private repos.
 
-This actions is tested on `ubuntu-20.04`, `ubuntu-18.04`, `macos-10.15`. No Windows support yet.
+This action is tested on `ubuntu-latest` and `macos-latest`. No Windows support yet.
 
 ## Usage
 
