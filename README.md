@@ -1,5 +1,5 @@
-![SSH Tests](https://github.com/daspn/private-actions-checkout/workflows/SSH%20Tests/badge.svg)
-![GitHub App tests](https://github.com/daspn/private-actions-checkout/workflows/GitHub%20App%20tests/badge.svg)
+[![SSH Tests](https://github.com/daspn/private-actions-checkout/actions/workflows/tests-ssh.yml/badge.svg)](https://github.com/daspn/private-actions-checkout/actions/workflows/tests-ssh.yml)
+[![GitHub App tests](https://github.com/daspn/private-actions-checkout/actions/workflows/tests-gh-app.yml/badge.svg)](https://github.com/daspn/private-actions-checkout/actions/workflows/tests-gh-app.yml)
 
 # private-actions-checkout
 
