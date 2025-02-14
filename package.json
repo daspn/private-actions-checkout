@@ -12,8 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "@actions/core": "^1.10.0",
-    "@actions/github": "^5.1.1",
-    "@octokit/auth-app": "^4.0.7",
+    "@actions/github": "^6.0.0",
+    "@octokit/auth-app": "^7.1.4",
     "https-proxy-agent": "^5.0.1",
     "is-base64": "^1.1.0"
   },
