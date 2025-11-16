@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@vercel/ncc": "^0.24.0",
-    "standard": "^16.0.0"
+    "standard": "^17.1.2"
   },
   "standard": {
     "ignore": [
